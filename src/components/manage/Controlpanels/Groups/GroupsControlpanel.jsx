@@ -460,10 +460,9 @@ class GroupsControlpanel extends Component {
                       messages.addGroupsFormRolesTitle,
                     ),
                     type: 'array',
-                    choices: this.props.roles.map((role) => [
-                      role.id,
-                      role.title,
-                    ]),
+                    choices: this.props.roles
+                      .filter((role) => role.can_assign)
+                      .map((role) => [role.id, role.title]),
                     noValueOption: false,
                     description: '',
                   },

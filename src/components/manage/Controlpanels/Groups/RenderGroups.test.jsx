@@ -15,6 +15,7 @@ const testGroups = {
   id: 'Administrators',
   title: 'Administrators',
   roles: ['Manager'],
+  can_delete: true,
 };
 
 const testRoles = [
@@ -22,16 +23,19 @@ const testRoles = [
     '@id': 'http://localhost:8080/Plone/@roles/Member',
     '@type': 'role',
     id: 'Member',
+    can_assign: true,
   },
   {
     '@id': 'http://localhost:8080/Plone/@roles/Reader',
     '@type': 'role',
     id: 'Reader',
+    can_assign: true,
   },
   {
     '@id': 'http://localhost:8080/Plone/@roles/Manager',
     '@type': 'role',
     id: 'Manager',
+    can_assign: true,
   },
 ];
 

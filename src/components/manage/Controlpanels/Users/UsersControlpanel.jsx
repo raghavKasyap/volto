@@ -454,13 +454,17 @@ class UsersControlpanel extends Component {
       adduserschema.properties['roles'] = {
         title: this.props.intl.formatMessage(messages.addUserFormRolesTitle),
         type: 'array',
-        choices: this.props.roles.map((role) => [role.id, role.title]),
+        choices: this.props.roles
+          .filter((role) => role.can_assign_add)
+          .map((role) => [role.id, role.title]),
         noValueOption: false,
       };
       adduserschema.properties['groups'] = {
         title: this.props.intl.formatMessage(messages.addUserGroupNameTitle),
         type: 'array',
-        choices: this.props.groups.map((group) => [group.id, group.id]),
+        choices: this.props.groups
+          .filter((group) => group.can_delete)
+          .map((group) => [group.id, group.id]),
         noValueOption: false,
       };
       if (

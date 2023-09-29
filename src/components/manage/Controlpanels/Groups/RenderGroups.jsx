@@ -98,22 +98,25 @@ class RenderGroups extends Component {
                 }
                 onChange={this.onChange}
                 value={`${this.props.group.id}&role=${role.id}`}
+                disabled={!role.can_assign}
               />
             )}
           </Table.Cell>
         ))}
         <Table.Cell textAlign="right">
-          <Dropdown icon="ellipsis horizontal">
-            <Dropdown.Menu className="left">
-              <Dropdown.Item
-                onClick={this.props.onDelete}
-                value={this.props.group['@id']}
-              >
-                <Icon name={trashSVG} size="15px" />
-                <FormattedMessage id="Delete" defaultMessage="Delete" />
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
+          {this.props.group['can_delete'] && (
+            <Dropdown icon="ellipsis horizontal">
+              <Dropdown.Menu className="left">
+                <Dropdown.Item
+                  onClick={this.props.onDelete}
+                  value={this.props.group['@id']}
+                >
+                  <Icon name={trashSVG} size="15px" />
+                  <FormattedMessage id="Delete" defaultMessage="Delete" />
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          )}
         </Table.Cell>
       </Table.Row>
     );

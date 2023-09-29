@@ -139,35 +139,38 @@ class RenderUsers extends Component {
                 checked={this.props.user.roles.includes(role.id)}
                 onChange={this.onChange}
                 value={`${this.props.user.id}&role=${role.id}`}
+                disabled={!role.can_assign}
               />
             )}
           </Table.Cell>
         ))}
         <Table.Cell textAlign="right">
-          <Dropdown icon="ellipsis horizontal">
-            <Dropdown.Menu className="left">
-              {this.props.userschema && (
+          {this.props.user['can_delete'] && (
+            <Dropdown icon="ellipsis horizontal">
+              <Dropdown.Menu className="left">
+                {this.props.userschema && (
+                  <Dropdown.Item
+                    id="edit-user-button"
+                    onClick={() => {
+                      this.onClickEdit({ formData: this.props.user });
+                    }}
+                    value={this.props.user['@id']}
+                  >
+                    <Icon name={editSVG} size="15px" />
+                    <FormattedMessage id="Edit" defaultMessage="Edit" />
+                  </Dropdown.Item>
+                )}
                 <Dropdown.Item
-                  id="edit-user-button"
-                  onClick={() => {
-                    this.onClickEdit({ formData: this.props.user });
-                  }}
+                  id="delete-user-button"
+                  onClick={this.props.onDelete}
                   value={this.props.user['@id']}
                 >
-                  <Icon name={editSVG} size="15px" />
-                  <FormattedMessage id="Edit" defaultMessage="Edit" />
+                  <Icon name={trashSVG} size="15px" />
+                  <FormattedMessage id="Delete" defaultMessage="Delete" />
                 </Dropdown.Item>
-              )}
-              <Dropdown.Item
-                id="delete-user-button"
-                onClick={this.props.onDelete}
-                value={this.props.user['@id']}
-              >
-                <Icon name={trashSVG} size="15px" />
-                <FormattedMessage id="Delete" defaultMessage="Delete" />
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
+              </Dropdown.Menu>
+            </Dropdown>
+          )}
         </Table.Cell>
         {Object.keys(this.state.user).length > 0 &&
           this.props.userschema.loaded && (
