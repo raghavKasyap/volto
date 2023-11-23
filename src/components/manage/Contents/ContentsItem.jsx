@@ -267,7 +267,7 @@ export const ContentsItemComponent = ({
               </Menu.Item>
               <Menu.Item
                 onClick={onDelete}
-                value={item['@id']}
+                value={item}
                 className="right-dropdown icon-align"
               >
                 <Icon name={deleteSVG} color="#e40166" size="24px" />{' '}

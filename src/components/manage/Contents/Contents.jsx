@@ -26,11 +26,11 @@ import {
   concat,
   filter,
   find,
+  findIndex,
   indexOf,
   keys,
   map,
   mapValues,
-  pull,
 } from 'lodash';
 import move from 'lodash-move';
 import { FormattedMessage, defineMessages, injectIntl } from 'react-intl';
@@ -449,7 +449,7 @@ class Contents extends Component {
       this.state.itemsToDelete.length > 0
     ) {
       const linkintegrityInfo = await this.props.linkIntegrityCheck(
-        map(this.state.itemsToDelete, (item) => this.getFieldById(item, 'UID')),
+        map(this.state.itemsToDelete, (item) => item['UID']),
       );
       const containedItems = linkintegrityInfo
         .map((result) => result.items_total ?? 0)
@@ -586,7 +586,7 @@ class Contents extends Component {
    */
   onDeselect(event, { value }) {
     this.setState({
-      selected: pull(this.state.selected, value),
+      selected: filter(this.state.selected, (item) => item['@id'] !== value),
     });
   }
 
@@ -597,13 +597,16 @@ class Contents extends Component {
    * @returns {undefined}
    */
   onSelect(event, id) {
-    if (indexOf(this.state.selected, id) === -1) {
+    if (findIndex(this.state.selected, ['@id', id]) === -1) {
       this.setState({
-        selected: concat(this.state.selected, id),
+        selected: concat(
+          this.state.selected,
+          find(this.state.items, ['@id', id]),
+        ),
       });
     } else {
       this.setState({
-        selected: pull(this.state.selected, id),
+        selected: filter(this.state.selected, (item) => item['@id'] !== id),
       });
     }
   }
@@ -615,7 +618,7 @@ class Contents extends Component {
    */
   onSelectAll() {
     this.setState({
-      selected: map(this.state.items, (item) => item['@id']),
+      selected: map(this.state.items, (item) => item),
     });
   }
 
@@ -996,14 +999,12 @@ class Contents extends Component {
 
   /**
    * Get field by id
-   * @method getFieldById
-   * @param {string} id Id of object
-   * @param {string} field Field of object
-   * @returns {string} Field of object
+   * @method getIdsFromItems
+   * @param {string} items Content items
+   * @returns {string} Array of ids of items
    */
-  getFieldById(id, field) {
-    const item = find(this.state.items, { '@id': id });
-    return item ? item[field] : '';
+  getIdsOfItems(items) {
+    return map(items, '@id');
   }
 
   /**
@@ -1046,7 +1047,7 @@ class Contents extends Component {
    * @returns {undefined}
    */
   cut(event, { value }) {
-    this.props.cut(value ? [value] : this.state.selected);
+    this.props.cut(value ? [value] : this.getIdsOfItems(this.state.selected));
     this.onSelectNone();
     this.props.toastify.toast.success(
       <Toast
@@ -1065,7 +1066,7 @@ class Contents extends Component {
    * @returns {undefined}
    */
   copy(event, { value }) {
-    this.props.copy(value ? [value] : this.state.selected);
+    this.props.copy(value ? [value] : this.getIdsOfItems(this.state.selected));
     this.onSelectNone();
     this.props.toastify.toast.success(
       <Toast
@@ -1222,6 +1223,30 @@ class Contents extends Component {
                     }
                     content={
                       <div className="content">
+                        <ul>
+                          {map(
+                            this.state.showAllItemsToDelete
+                              ? this.state.itemsToDelete
+                              : this.state.itemsToDelete.slice(
+                                  0,
+                                  this.deleteItemsToShowThreshold,
+                                ),
+                            (item) => (
+                              <li key={item['@id']}>{item.title}</li>
+                            ),
+                          )}
+                        </ul>
+                        {!this.state.showAllItemsToDelete && (
+                          <Button
+                            onClick={() =>
+                              this.setState({
+                                showAllItemsToDelete: true,
+                              })
+                            }
+                          >
+                            Show all items
+                          </Button>
+                        )}
                         {this.state.itemsToDelete.length > 1 ? (
                           this.state.containedItemsToDelete > 0 ? (
                             <>
@@ -1510,9 +1535,9 @@ class Contents extends Component {
                     onCancel={this.onRenameCancel}
                     onOk={this.onRenameOk}
                     items={map(this.state.selected, (item) => ({
-                      url: item,
-                      title: this.getFieldById(item, 'title'),
-                      id: this.getFieldById(item, 'id'),
+                      url: item['@id'],
+                      title: item['title'],
+                      id: item['id'],
                     }))}
                   />
                   <ContentsTagsModal
@@ -1520,22 +1545,22 @@ class Contents extends Component {
                     onCancel={this.onTagsCancel}
                     onOk={this.onTagsOk}
                     items={map(this.state.selected, (item) => ({
-                      url: item,
-                      subjects: this.getFieldById(item, 'Subject'),
+                      url: item['@id'],
+                      subjects: item['Subject'],
                     }))}
                   />
                   <ContentsPropertiesModal
                     open={this.state.showProperties}
                     onCancel={this.onPropertiesCancel}
                     onOk={this.onPropertiesOk}
-                    items={this.state.selected}
+                    items={this.getIdsOfItems(this.state.selected)}
                   />
                   {this.state.showWorkflow && (
                     <ContentsWorkflowModal
                       open={this.state.showWorkflow}
                       onCancel={this.onWorkflowCancel}
                       onOk={this.onWorkflowOk}
-                      items={this.state.selected}
+                      items={this.getIdsOfItems(this.state.selected)}
                     />
                   )}
                   <section id="content-core">
@@ -2067,7 +2092,7 @@ class Contents extends Component {
                                             color="#e40166"
                                             size="24px"
                                           />{' '}
-                                          {this.getFieldById(item, 'title')}
+                                          {item['title']}
                                         </Menu.Item>
                                       ))}
                                     </Menu.Menu>
@@ -2116,8 +2141,10 @@ class Contents extends Component {
                                 item={item}
                                 order={order}
                                 selected={
-                                  indexOf(this.state.selected, item['@id']) !==
-                                  -1
+                                  findIndex(this.state.selected, [
+                                    '@id',
+                                    item['@id'],
+                                  ]) !== -1
                                 }
                                 onClick={this.onSelect}
                                 indexes={filter(
