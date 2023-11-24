@@ -854,7 +854,7 @@ class Contents extends Component {
    * @returns {undefined}
    */
   onDeleteOk() {
-    this.props.deleteContent(this.state.itemsToDelete);
+    this.props.deleteContent(this.getIdsOfItems(this.state.itemsToDelete));
     this.setState({
       showDelete: false,
       itemsToDelete: [],
